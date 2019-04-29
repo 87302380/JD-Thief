@@ -13,22 +13,21 @@ class ScrapypicturePipeline(ImagesPipeline):
     #def process_item(self, item, spider):
     #    return item
     # 获取settings文件里设置的变量值
-    IMAGES_STORE = get_project_settings().get("IMAGES_STORE")
+    #IMAGES_STORE = get_project_settings().get("IMAGES_STORE")
 
     def get_media_requests(self, item, info):
 
         image_url = item["pic_path"][:]
 
-        yield scrapy.Request(image_url)
+        yield scrapy.Request(image_url, meta={'item':item,'index':item['pic_path'].index(image_url)})
 
-        '''
-        for p in range(2,51):
-            image_url = item["pic_path"][:-5]+str(p)+'.jpg'
-            print(image_url)
-            #image_referer = item["pic_url"][:-5]+'_'+str(p)+'.html'
+    def file_path(self, request, response=None, info=None):
+        item = request.meta['item']  # 通过meta把item值传递过来
 
-            #print(image_referer)
-            
-        '''
+        image_guid =  request.url.split('/')[-1]
+
+        filename = item['src_contents'].replace("/"," ") + "/" + image_guid
+        print(filename)
+        return filename
 
 

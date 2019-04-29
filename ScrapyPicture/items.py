@@ -11,5 +11,6 @@ import scrapy
 class ScrapypictureItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
+
     pic_path = scrapy.Field()
-    #pic_url = scrapy.Field()
+    src_contents = scrapy.Field()
