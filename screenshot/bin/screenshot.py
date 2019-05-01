@@ -8,31 +8,57 @@ from urllib import request
 
 def start(driver, URL):
     driver.get(URL)
-    #driver.maximize_window()
+    global dir_path
+
     try:
         load(driver)
-        name = driver.find_element_by_class_name('sku-name').text.replace("/", " ")
-        dir_path = 'C:/Users/CMA/Desktop/tb/' + name + '/'
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
+        makedir()
+
+        source = driver.page_source
+        soup = BeautifulSoup(source, 'lxml')
+
+        images = soup.find(id="spec-list").find_all("img")
+        i = 0
+        for image in  images:
+            url = image.get('src')
+            if url.find('com/n5'):
+                url = url.replace('com/n5', 'com/n1')
+            else:
+                url = url.replace('com/n1', 'com/n5')
+            url = url.replace('s54x54', 's450x450')
+            download(url, "主图-"+str(i))
+            i += 1
+
         driver.find_element_by_class_name('ssd-module-wrap')
     except:
-        source = driver.page_source
         driver.close()
-        #print("无法截图,直接下载图片")
+        print("不属于动态加载页面，直接下载图片")
 
-        soup = BeautifulSoup(source, 'lxml')
         images = soup.find(id="J-detail-content").find_all("img")
+        i = 0
         for image in images:
             url = image.get('src')
-            url = url.replace("https:","")
-            url = "https:" + url
-            print(url)
-            image_guid = url.split('/')[-1]
-            if len(url) != 0:
-                request.urlretrieve(url, dir_path+image_guid)
+            download(url, "商品介绍-"+str(i))
+            i+=1
     else:
         getScreenshot(driver, dir_path)
+
+def makedir():
+    global dir_path
+    name = driver.find_element_by_class_name('sku-name').text.replace("/", " ")
+    dir_path = dir_path + name + '/'
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+def download(url, name):
+    global dir_path
+    url = url.replace("https:", "")
+    url = "https:" + url
+    image_guid = url.split('.')[-1]
+    print("get:" + url)
+    if len(url) != 0:
+        request.urlretrieve(url, dir_path + name +"." + image_guid)
+
 
 def load(driver):
     detailDiv = driver.find_element_by_id('J-detail-content')
@@ -81,6 +107,8 @@ def getScreenshot(driver, path):
 
 #driver = webdriver.Chrome('..//chromedriver.exe')
 driver = webdriver.PhantomJS('..\\phantomjs-2.1.1-windows\\bin\\phantomjs.exe')
+
+dir_path = 'C:/Users/CMA/Desktop/tb/'
 #driver = webdriver.Firefox(options=options,executable_path=r'..\\geckodriver.exe')
 start(driver, 'https://item.jd.com/100001155819.html')
 
